@@ -1,0 +1,2043 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus Media - A.I.S.E.N.D</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <style>
+        /* ========== GLOBAL RESET & VARIABLES ========== */
+        :root {
+            --bg-primary: #050505;
+            --bg-gradient-1: #0f0c29;
+            --bg-gradient-2: #302b63;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-glow: rgba(255, 255, 255, 0.2);
+            --neon-blue: #00d4ff;
+            --neon-purple: #a855f7;
+            --neon-gold: #ffd700;
+            --neon-green: #22c55e;
+            --neon-red: #ef4444;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        /* ========== ANIMATED BACKGROUND ========== */
+        .bg-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 50%, var(--bg-primary) 100%);
+            overflow: hidden;
+        }
+
+        .bg-noise {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .blob-1 {
+            width: 300px;
+            height: 300px;
+            background: var(--neon-purple);
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .blob-2 {
+            width: 250px;
+            height: 250px;
+            background: var(--neon-blue);
+            bottom: -80px;
+            right: -80px;
+            animation-delay: -7s;
+        }
+
+        .blob-3 {
+            width: 200px;
+            height: 200px;
+            background: var(--neon-gold);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -14s;
+            opacity: 0.2;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -30px) scale(1.1); }
+            50% { transform: translate(-20px, 20px) scale(0.9); }
+            75% { transform: translate(20px, 30px) scale(1.05); }
+        }
+
+        /* ========== LOADER ========== */
+        .loader-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loader-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-text {
+            font-family: 'Courier New', monospace;
+            color: var(--neon-green);
+            font-size: 14px;
+            margin-top: 20px;
+            animation: blink 0.5s infinite;
+        }
+
+        .matrix-rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            opacity: 0.3;
+        }
+
+        .matrix-column {
+            position: absolute;
+            top: -100%;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--neon-green);
+            writing-mode: vertical-rl;
+            animation: matrix-fall 4s linear infinite;
+        }
+
+        @keyframes matrix-fall {
+            0% { top: -100%; opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        /* ========== MAIN APP CONTAINER ========== */
+        .app-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 80px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .app-container.visible {
+            opacity: 1;
+        }
+
+        /* ========== GLASSMORPHISM CARDS ========== */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glass-glow), transparent);
+        }
+
+        .glass-card.glow-corners::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            border-radius: 17px;
+            background: linear-gradient(45deg, var(--neon-blue), transparent, var(--neon-purple));
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        /* ========== TAB CONTENT SECTIONS ========== */
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 16px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== BOTTOM NAVIGATION ========== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            right: 16px;
+            height: 60px;
+            background: rgba(20, 20, 30, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-item .icon {
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-item .label {
+            font-size: 10px;
+            color: var(--text-muted);
+            transition: color 0.3s ease;
+        }
+
+        .nav-item.active .icon {
+            transform: scale(1.2);
+        }
+
+        .nav-item.active .label {
+            color: var(--neon-blue);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 4px;
+            height: 4px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        /* ========== PROFILE TAB ========== */
+        .profile-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 0;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .avatar-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .avatar-ring svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .avatar-ring .progress-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.1);
+            stroke-width: 4;
+        }
+
+        .avatar-ring .progress-bar {
+            fill: none;
+            stroke: url(#levelGradient);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 339.292;
+            stroke-dashoffset: 339.292;
+            transition: stroke-dashoffset 1.5s ease;
+        }
+
+        .avatar-img {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+
+        .user-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 16px;
+        }
+
+        .user-tier {
+            font-size: 14px;
+            color: var(--neon-gold);
+            margin-top: 4px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .streak-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            border-radius: 20px;
+            margin-top: 16px;
+        }
+
+        .streak-badge .fire {
+            animation: flicker 0.5s infinite alternate;
+        }
+
+        @keyframes flicker {
+            from { transform: scale(1); }
+            to { transform: scale(1.1) rotate(5deg); }
+        }
+
+        /* XP Chart */
+        .chart-container {
+            margin-top: 24px;
+            padding: 16px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        #xpChart {
+            max-height: 200px;
+        }
+
+        /* ========== EDU TAB (Flashcards) ========== */
+        .edu-header {
+            text-align: center;
+            padding: 16px 0;
+        }
+
+        .edu-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .edu-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .swiper-container {
+            width: 100%;
+            padding: 20px 0 40px;
+        }
+
+        .flashcard {
+            width: 280px;
+            height: 380px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .flashcard-front {
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(0, 212, 255, 0.2));
+            border: 1px solid var(--glass-border);
+        }
+
+        .flashcard-back {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(0, 212, 255, 0.2));
+            border: 1px solid var(--neon-green);
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-question {
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .flashcard-answer {
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--neon-green);
+            text-shadow: 0 0 20px var(--neon-green);
+        }
+
+        .flashcard-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 20px;
+        }
+
+        .flashcard-actions {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .action-btn {
+            padding: 12px 32px;
+            border-radius: 25px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-wrong {
+            background: linear-gradient(135deg, var(--neon-red), #dc2626);
+            color: white;
+        }
+
+        .btn-correct {
+            background: linear-gradient(135deg, var(--neon-green), #16a34a);
+            color: white;
+        }
+
+        /* Edu Switcher */
+        .edu-switcher {
+            display: flex;
+            background: var(--glass-bg);
+            border-radius: 25px;
+            padding: 4px;
+            margin-bottom: 16px;
+        }
+
+        .edu-switch-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 22px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .edu-switch-btn.active {
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+            color: white;
+        }
+
+        .edu-section {
+            display: none;
+        }
+
+        .edu-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* AI Quiz Stats */
+        .quiz-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .quiz-stat {
+            padding: 16px 12px;
+            text-align: center;
+        }
+
+        .quiz-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .quiz-stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        #quizChart {
+            max-height: 180px;
+        }
+
+        /* Quiz Results */
+        .quiz-results {
+            margin-top: 16px;
+            padding: 16px;
+        }
+
+        .quiz-results-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .quiz-results-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .quiz-result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: var(--glass-bg);
+            border-radius: 12px;
+        }
+
+        .quiz-result-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quiz-result-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .quiz-result-icon.success {
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .quiz-result-icon.fail {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .quiz-result-topic {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .quiz-result-date {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .quiz-result-score {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .quiz-result-score.good {
+            color: var(--neon-green);
+        }
+
+        .quiz-result-score.bad {
+            color: var(--neon-red);
+        }
+
+        /* Start Quiz Button */
+        .start-quiz-btn {
+            width: 100%;
+            padding: 16px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+        }
+
+        .start-quiz-btn:active {
+            transform: scale(0.98);
+        }
+
+        .start-quiz-btn:hover {
+            box-shadow: 0 6px 30px rgba(168, 85, 247, 0.6);
+        }
+
+        .quiz-btn-icon {
+            font-size: 24px;
+        }
+
+        /* ========== GAMIFICATION TAB ========== */
+        .gami-switcher {
+            display: flex;
+            background: var(--glass-bg);
+            border-radius: 25px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .switch-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 22px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+
+        .switch-btn.active {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white;
+        }
+
+        .gami-section {
+            display: none;
+        }
+
+        .gami-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Leaderboard */
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 20px 0;
+        }
+
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+            border-radius: 16px;
+        }
+
+        .podium-item.first {
+            order: 2;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.1));
+            border: 1px solid var(--neon-gold);
+        }
+
+        .podium-item.second {
+            order: 1;
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.2), rgba(169, 169, 169, 0.1));
+        }
+
+        .podium-item.third {
+            order: 3;
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.2), rgba(184, 115, 51, 0.1));
+        }
+
+        .podium-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            position: relative;
+        }
+
+        .podium-item.first .podium-avatar {
+            width: 60px;
+            height: 60px;
+        }
+
+        .crown {
+            position: absolute;
+            top: -15px;
+            font-size: 20px;
+        }
+
+        .podium-name {
+            font-size: 12px;
+            margin-top: 8px;
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .podium-xp {
+            font-size: 11px;
+            color: var(--neon-gold);
+        }
+
+        .leaderboard-list {
+            margin-top: 16px;
+        }
+
+        .lb-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            background: var(--glass-bg);
+        }
+
+        .lb-item.current-user {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(168, 85, 247, 0.1));
+            border: 1px solid var(--neon-blue);
+        }
+
+        .lb-rank {
+            width: 30px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .lb-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+        }
+
+        .lb-info {
+            flex: 1;
+        }
+
+        .lb-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .lb-level {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .lb-xp {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--neon-gold);
+        }
+
+        /* Shop */
+        .gold-balance {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .gold-amount {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--neon-gold);
+        }
+
+        .gold-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .shop-item {
+            padding: 16px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shop-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .shop-item:hover::before {
+            left: 100%;
+        }
+
+        .shop-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        .shop-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .shop-price {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, var(--neon-gold), #f59e0b);
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #000;
+            cursor: pointer;
+        }
+
+        .shop-price:active {
+            transform: scale(0.95);
+        }
+
+        /* ========== PREMIUM TAB ========== */
+        .premium-header {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .premium-timer {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+            border: 1px solid var(--neon-red);
+            border-radius: 25px;
+            font-size: 14px;
+            color: var(--neon-red);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .premium-counter {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 12px;
+        }
+
+        .pricing-cards {
+            margin-top: 24px;
+        }
+
+        .pricing-card {
+            padding: 24px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card.exclusive {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0, 0, 0, 0.5));
+            border: 2px solid var(--neon-gold);
+        }
+
+        .pricing-card.exclusive::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        .pricing-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 12px;
+            background: var(--neon-gold);
+            color: #000;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 10px;
+        }
+
+        .pricing-name {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .pricing-price {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 12px 0;
+        }
+
+        .pricing-price span {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin: 16px 0;
+        }
+
+        .pricing-features li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .pricing-features li::before {
+            content: '✓';
+            color: var(--neon-green);
+        }
+
+        .pricing-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-btn:active {
+            transform: scale(0.98);
+        }
+
+        .pricing-card.exclusive .pricing-btn {
+            background: linear-gradient(135deg, var(--neon-gold), #f59e0b);
+            color: #000;
+        }
+
+        .pricing-card:not(.exclusive) .pricing-btn {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            color: white;
+        }
+
+        /* ========== HONEY POT (Hidden) ========== */
+        .honeypot {
+            position: fixed;
+            bottom: 100px;
+            right: 10px;
+            width: 50px;
+            height: 50px;
+            opacity: 0;
+            cursor: default;
+        }
+
+        /* ========== SECURITY ALERT ========== */
+        .security-alert {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(239, 68, 68, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .security-alert.show {
+            opacity: 1;
+            visibility: visible;
+            animation: glitch 0.3s ease;
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-5px, 5px); }
+            40% { transform: translate(5px, -5px); }
+            60% { transform: translate(-5px, -5px); }
+            80% { transform: translate(5px, 5px); }
+        }
+
+        .security-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+        }
+
+        /* ========== EXPIRED SCREEN ========== */
+        .expired-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9998;
+            display: none;
+        }
+
+        .expired-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .expired-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--neon-red);
+        }
+
+        .expired-sub {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* ========== PARTICLE EFFECTS ========== */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            animation: particle-fall 1s ease-out forwards;
+        }
+
+        @keyframes particle-fall {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(100px) scale(0.5); }
+        }
+
+        /* ========== DISABLE CONTEXT MENU ========== */
+        body {
+            -webkit-touch-callout: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-container">
+        <div class="bg-noise"></div>
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Loader Screen -->
+    <div class="loader-screen" id="loader">
+        <div class="matrix-rain" id="matrixRain"></div>
+        <div class="loader-text">Decrypting user data...</div>
+    </div>
+
+    <!-- Security Alert -->
+    <div class="security-alert" id="securityAlert">
+        <div class="security-text">⚠️ SYSTEM SECURITY ALERT ⚠️</div>
+    </div>
+
+    <!-- Expired Screen -->
+    <div class="expired-screen" id="expiredScreen">
+        <div class="expired-icon">⏰</div>
+        <div class="expired-text">Havola muddati tugagan</div>
+        <div class="expired-sub">Iltimos, botdan yangi havola oling</div>
+    </div>
+
+    <!-- Honey Pot -->
+    <button class="honeypot" id="honeypot" onclick="triggerHoneypot()"></button>
+
+    <!-- Main App -->
+    <div class="app-container" id="app">
+        <!-- SVG Gradient Definition -->
+        <svg width="0" height="0">
+            <defs>
+                <linearGradient id="levelGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#a855f7"/>
+                    <stop offset="100%" style="stop-color:#00d4ff"/>
+                </linearGradient>
+            </defs>
+        </svg>
+
+        <!-- Tab 1: Profile -->
+        <div class="tab-content active" id="tab-profile">
+            <div class="profile-header">
+                <div class="avatar-container">
+                    <div class="avatar-ring">
+                        <svg viewBox="0 0 120 120">
+                            <circle class="progress-bg" cx="60" cy="60" r="54"/>
+                            <circle class="progress-bar" id="levelProgress" cx="60" cy="60" r="54"/>
+                        </svg>
+                    </div>
+                    <div class="avatar-img" id="userAvatar">👤</div>
+                </div>
+                <div class="user-name" id="userName">Foydalanuvchi</div>
+                <div class="user-tier" id="userTier">Standard</div>
+                <div class="streak-badge">
+                    <span class="fire">🔥</span>
+                    <span id="streakCount">0 kun streak</span>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="glass-card stat-card">
+                    <div class="stat-value" id="statXP">0</div>
+                    <div class="stat-label">XP</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-value" id="statGold">0</div>
+                    <div class="stat-label">Gold</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-value" id="statLevel">1</div>
+                    <div class="stat-label">Level</div>
+                </div>
+                <div class="glass-card stat-card">
+                    <div class="stat-value" id="statQuizzes">0</div>
+                    <div class="stat-label">Testlar</div>
+                </div>
+            </div>
+
+            <div class="glass-card chart-container">
+                <div class="chart-title">📈 XP Tarixi (14 kun)</div>
+                <canvas id="xpChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tab 2: Edu (Flashcards + AI Quiz) -->
+        <div class="tab-content" id="tab-edu">
+            <div class="edu-switcher">
+                <div class="edu-switch-btn active" onclick="switchEdu('flashcards')">🧠 Flashcards</div>
+                <div class="edu-switch-btn" onclick="switchEdu('quiz')">🤖 AI Quiz</div>
+            </div>
+
+            <!-- Flashcards Section -->
+            <div class="edu-section active" id="edu-flashcards">
+                <div class="edu-header">
+                    <div class="edu-title">🧠 Flashcards</div>
+                    <div class="edu-subtitle">Xatolaringizni takrorlang</div>
+                </div>
+
+                <div class="swiper-container">
+                    <div class="swiper" id="flashcardSwiper">
+                        <div class="swiper-wrapper" id="flashcardWrapper">
+                            <!-- Flashcards will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flashcard-actions">
+                    <button class="action-btn btn-wrong" onclick="flashcardAction('wrong')">❌ Bilmadim</button>
+                    <button class="action-btn btn-correct" onclick="flashcardAction('correct')">✅ Bildim</button>
+                </div>
+            </div>
+
+            <!-- AI Quiz Section -->
+            <div class="edu-section" id="edu-quiz">
+                <div class="edu-header">
+                    <div class="edu-title">🤖 AI Quiz</div>
+                    <div class="edu-subtitle">AI tomonidan generatsiya qilingan savollar</div>
+                </div>
+
+                <!-- Quiz Stats -->
+                <div class="quiz-stats-grid">
+                    <div class="glass-card quiz-stat">
+                        <div class="quiz-stat-value" id="quizTotal">0</div>
+                        <div class="quiz-stat-label">Jami testlar</div>
+                    </div>
+                    <div class="glass-card quiz-stat">
+                        <div class="quiz-stat-value" id="quizCorrect">0%</div>
+                        <div class="quiz-stat-label">To'g'ri javoblar</div>
+                    </div>
+                    <div class="glass-card quiz-stat">
+                        <div class="quiz-stat-value" id="quizStreak">0</div>
+                        <div class="quiz-stat-label">Eng uzun streak</div>
+                    </div>
+                </div>
+
+                <!-- Quiz Progress Chart -->
+                <div class="glass-card chart-container">
+                    <div class="chart-title">📊 Quiz natijalari (7 kun)</div>
+                    <canvas id="quizChart"></canvas>
+                </div>
+
+                <!-- Recent Quiz Results -->
+                <div class="glass-card quiz-results">
+                    <div class="quiz-results-title">📝 So'nggi natijalar</div>
+                    <div class="quiz-results-list" id="quizResultsList">
+                        <!-- Quiz results will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Start Quiz Button -->
+                <button class="start-quiz-btn" onclick="startAIQuiz()">
+                    <span class="quiz-btn-icon">🚀</span>
+                    <span class="quiz-btn-text">Yangi quiz boshlash</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab 3: Gamification -->
+        <div class="tab-content" id="tab-gamification">
+            <div class="gami-switcher">
+                <div class="switch-btn active" onclick="switchGami('leaderboard')">🏆 Leaderboard</div>
+                <div class="switch-btn" onclick="switchGami('shop')">🛒 Do'kon</div>
+            </div>
+
+            <!-- Leaderboard Section -->
+            <div class="gami-section active" id="gami-leaderboard">
+                <div class="podium" id="podium">
+                    <!-- Podium items will be inserted -->
+                </div>
+                <div class="leaderboard-list" id="leaderboardList">
+                    <!-- Leaderboard items will be inserted -->
+                </div>
+            </div>
+
+            <!-- Shop Section -->
+            <div class="gami-section" id="gami-shop">
+                <div class="glass-card gold-balance">
+                    <div class="gold-amount">🪙 <span id="shopGold">0</span></div>
+                    <div class="gold-label">Sizning oltiningiz</div>
+                </div>
+                <div class="shop-grid" id="shopGrid">
+                    <!-- Shop items will be inserted -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Premium -->
+        <div class="tab-content" id="tab-premium">
+            <div class="premium-header">
+                <div class="premium-timer">
+                    ⏰ Chegirma tugashiga: <span id="premiumTimer">02:45:12</span>
+                </div>
+                <div class="premium-counter">🔥 Faqat <span id="slotsLeft">12</span> ta joy qoldi!</div>
+            </div>
+
+            <div class="pricing-cards">
+                <div class="glass-card pricing-card">
+                    <div class="pricing-name">💎 Premium</div>
+                    <div class="pricing-price">29,990 <span>so'm/oy</span></div>
+                    <ul class="pricing-features">
+                        <li>Cheksiz yuklab olish</li>
+                        <li>AI Mentor - 50 ta savol/kun</li>
+                        <li>Reklama yo'q</li>
+                        <li>Priority support</li>
+                    </ul>
+                    <button class="pricing-btn" onclick="buyPremium('premium')">Sotib olish</button>
+                </div>
+
+                <div class="glass-card pricing-card exclusive">
+                    <div class="pricing-badge">⭐ TAVSIYA</div>
+                    <div class="pricing-name">🏆 Exclusive</div>
+                    <div class="pricing-price">47,990 <span>so'm/oy</span></div>
+                    <ul class="pricing-features">
+                        <li>Premium'dagi barcha imkoniyatlar</li>
+                        <li>AI Mentor - CHEKSIZ</li>
+                        <li>Exclusive kontentlar</li>
+                        <li>VIP badge</li>
+                        <li>Early access</li>
+                    </ul>
+                    <button class="pricing-btn" onclick="buyPremium('exclusive')">Sotib olish</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('profile')">
+            <span class="icon">👤</span>
+            <span class="label">Profil</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('edu')">
+            <span class="icon">🧠</span>
+            <span class="label">O'rganish</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('gamification')">
+            <span class="icon">🎮</span>
+            <span class="label">O'yin</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('premium')">
+            <span class="icon">💎</span>
+            <span class="label">Premium</span>
+        </div>
+    </nav>
+
+    <script>
+        // ========== CONFIGURATION ==========
+        // TODO: Keyinchalik bu kodni minify/obfuscate qilish kerak!
+        const AES_KEY = 'nexus_secret_key_32bytes_long!!'; // 32 bytes for AES-256
+        const TTL_SECONDS = 300; // 5 minutes
+
+        // ========== TELEGRAM WEBAPP ==========
+        const tg = window.Telegram?.WebApp;
+        let userData = null;
+
+        // ========== INITIALIZATION ==========
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Disable right-click
+            document.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                showSecurityAlert();
+            });
+
+            // Detect DevTools
+            const devtools = /./;
+            devtools.toString = function() {
+                showSecurityAlert();
+            };
+
+            // Initialize Matrix rain
+            createMatrixRain();
+
+            // Parse URL and decrypt payload
+            const urlParams = new URLSearchParams(window.location.search);
+            const encryptedPayload = urlParams.get('payload');
+            const tab = urlParams.get('tab');
+
+            if (encryptedPayload) {
+                try {
+                    userData = decryptPayload(encryptedPayload);
+                    
+                    // Check TTL
+                    if (userData.timestamp) {
+                        const now = Math.floor(Date.now() / 1000);
+                        if (now - userData.timestamp > TTL_SECONDS) {
+                            showExpiredScreen();
+                            return;
+                        }
+                    }
+
+                    // Populate UI
+                    populateUI(userData);
+                } catch (e) {
+                    console.error('Decryption failed:', e);
+                    showExpiredScreen();
+                    return;
+                }
+            } else {
+                // Demo mode
+                userData = getDemoData();
+                populateUI(userData);
+            }
+
+            // Hide loader after delay
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('app').classList.add('visible');
+
+                // Switch to requested tab
+                if (tab) {
+                    if (tab === 'shop') {
+                        switchTab('gamification');
+                        setTimeout(() => switchGami('shop'), 100);
+                    } else {
+                        switchTab(tab);
+                    }
+                }
+
+                // Initialize charts
+                initXPChart();
+                initSwiper();
+            }, 2000);
+
+            // Telegram WebApp ready
+            if (tg) {
+                tg.ready();
+                tg.expand();
+            }
+        });
+
+        // ========== DECRYPTION ==========
+        function decryptPayload(encrypted) {
+            try {
+                const bytes = CryptoJS.AES.decrypt(encrypted, AES_KEY);
+                const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+                return JSON.parse(decrypted);
+            } catch (e) {
+                throw new Error('Decryption failed');
+            }
+        }
+
+        // ========== DEMO DATA ==========
+        function getDemoData() {
+            return {
+                user_id: 123456789,
+                full_name: 'Asadbek',
+                username: 'asadbekjon',
+                xp: 1815,
+                gold: 250,
+                level: 5,
+                streak: 7,
+                tier: 'Premium',
+                quizzes_completed: 42,
+                level_progress: 65,
+                xp_history: [100, 150, 200, 180, 250, 300, 280, 320, 400, 450, 500, 600, 750, 815],
+                flashcards: [
+                    { question: "Python'da list va tuple farqi nima?", answer: "List o'zgaruvchan (mutable), tuple o'zgarmas (immutable)" },
+                    { question: "HTTP va HTTPS farqi?", answer: "HTTPS shifrlangan (SSL/TLS), HTTP esa ochiq matn" },
+                    { question: "SQL Injection nima?", answer: "Zararli SQL kodini kiritish orqali bazaga hujum" }
+                ],
+                leaderboard: [
+                    { name: 'Sardor', xp: 2500, level: 8 },
+                    { name: 'Asadbek', xp: 1815, level: 5, is_current: true },
+                    { name: 'Jasur', xp: 1500, level: 4 },
+                    { name: 'Dilshod', xp: 1200, level: 3 },
+                    { name: 'Bobur', xp: 1000, level: 3 }
+                ],
+                shop_items: [
+                    { id: 'hint', name: 'Hint', icon: '💡', price: 50 },
+                    { id: 'fifty', name: '50/50', icon: '🎯', price: 100 },
+                    { id: 'freeze', name: 'Streak Freeze', icon: '❄️', price: 200 },
+                    { id: 'xp_boost', name: 'XP Boost', icon: '⚡', price: 500 }
+                ],
+                timestamp: Math.floor(Date.now() / 1000)
+            };
+        }
+
+        // ========== POPULATE UI ==========
+        function populateUI(data) {
+            // Profile
+            document.getElementById('userName').textContent = data.full_name || 'Foydalanuvchi';
+            document.getElementById('userTier').textContent = data.tier || 'Standard';
+            document.getElementById('streakCount').textContent = `${data.streak || 0} kun streak`;
+            document.getElementById('statXP').textContent = formatNumber(data.xp || 0);
+            document.getElementById('statGold').textContent = formatNumber(data.gold || 0);
+            document.getElementById('statLevel').textContent = data.level || 1;
+            document.getElementById('statQuizzes').textContent = data.quizzes_completed || 0;
+            document.getElementById('shopGold').textContent = formatNumber(data.gold || 0);
+
+            // Level progress ring
+            const progress = data.level_progress || 0;
+            const circumference = 339.292;
+            const offset = circumference - (progress / 100) * circumference;
+            setTimeout(() => {
+                document.getElementById('levelProgress').style.strokeDashoffset = offset;
+            }, 500);
+
+            // Flashcards
+            renderFlashcards(data.flashcards || []);
+
+            // Leaderboard
+            renderLeaderboard(data.leaderboard || []);
+
+            // Shop
+            renderShop(data.shop_items || []);
+        }
+
+        // ========== TAB SWITCHING ==========
+        function switchTab(tabName) {
+            // Haptic feedback
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach((item, index) => {
+                const tabs = ['profile', 'edu', 'gamification', 'premium'];
+                item.classList.toggle('active', tabs[index] === tabName);
+            });
+
+            // Update content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // ========== GAMIFICATION SWITCHER ==========
+        function switchGami(section) {
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+
+            document.querySelectorAll('.switch-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(section));
+            });
+
+            document.querySelectorAll('.gami-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            document.getElementById(`gami-${section}`).classList.add('active');
+        }
+
+        // ========== EDU SWITCHER ==========
+        function switchEdu(section) {
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+
+            document.querySelectorAll('.edu-switch-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(section));
+            });
+
+            document.querySelectorAll('.edu-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            document.getElementById(`edu-${section}`).classList.add('active');
+
+            // Initialize quiz chart when switching to quiz
+            if (section === 'quiz') {
+                initQuizChart();
+                renderQuizResults(userData?.quiz_results || getDefaultQuizResults());
+            }
+        }
+
+        // ========== AI QUIZ ==========
+        function getDefaultQuizResults() {
+            return [
+                { topic: 'Python Basics', score: 8, total: 10, date: 'Bugun' },
+                { topic: 'JavaScript', score: 7, total: 10, date: 'Kecha' },
+                { topic: 'SQL', score: 9, total: 10, date: '2 kun oldin' },
+                { topic: 'Git & GitHub', score: 6, total: 10, date: '3 kun oldin' },
+                { topic: 'API Design', score: 8, total: 10, date: '4 kun oldin' }
+            ];
+        }
+
+        function renderQuizResults(results) {
+            const list = document.getElementById('quizResultsList');
+            list.innerHTML = results.map(r => {
+                const percent = Math.round((r.score / r.total) * 100);
+                const isGood = percent >= 70;
+                return `
+                    <div class="quiz-result-item">
+                        <div class="quiz-result-info">
+                            <div class="quiz-result-icon ${isGood ? 'success' : 'fail'}">
+                                ${isGood ? '✅' : '❌'}
+                            </div>
+                            <div>
+                                <div class="quiz-result-topic">${r.topic}</div>
+                                <div class="quiz-result-date">${r.date}</div>
+                            </div>
+                        </div>
+                        <div class="quiz-result-score ${isGood ? 'good' : 'bad'}">${r.score}/${r.total}</div>
+                    </div>
+                `;
+            }).join('');
+
+            // Update stats
+            const totalQuizzes = results.length;
+            const avgScore = results.length > 0 
+                ? Math.round(results.reduce((sum, r) => sum + (r.score / r.total) * 100, 0) / results.length)
+                : 0;
+            const bestStreak = Math.max(...results.map(r => r.score), 0);
+
+            document.getElementById('quizTotal').textContent = totalQuizzes;
+            document.getElementById('quizCorrect').textContent = avgScore + '%';
+            document.getElementById('quizStreak').textContent = bestStreak;
+        }
+
+        let quizChartInstance = null;
+
+        function initQuizChart() {
+            if (quizChartInstance) return; // Already initialized
+
+            const ctx = document.getElementById('quizChart');
+            if (!ctx) return;
+
+            const quizHistory = userData?.quiz_history || [65, 72, 80, 75, 85, 90, 88];
+            
+            quizChartInstance = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Dush', 'Sesh', 'Chor', 'Pay', 'Jum', 'Shan', 'Yak'],
+                    datasets: [{
+                        label: 'Natija %',
+                        data: quizHistory,
+                        backgroundColor: quizHistory.map(v => 
+                            v >= 80 ? 'rgba(34, 197, 94, 0.6)' : 
+                            v >= 60 ? 'rgba(0, 212, 255, 0.6)' : 
+                            'rgba(239, 68, 68, 0.6)'
+                        ),
+                        borderColor: quizHistory.map(v => 
+                            v >= 80 ? '#22c55e' : 
+                            v >= 60 ? '#00d4ff' : 
+                            '#ef4444'
+                        ),
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { 
+                                color: 'rgba(255,255,255,0.5)', 
+                                font: { size: 10 },
+                                callback: v => v + '%'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        function startAIQuiz() {
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('heavy');
+            }
+
+            // Send request to bot to start AI Quiz
+            sendData({ action: 'start_ai_quiz' });
+
+            // Visual feedback
+            const btn = document.querySelector('.start-quiz-btn');
+            btn.innerHTML = '<span class="quiz-btn-icon">⏳</span><span class="quiz-btn-text">Yuklanmoqda...</span>';
+            
+            setTimeout(() => {
+                btn.innerHTML = '<span class="quiz-btn-icon">🚀</span><span class="quiz-btn-text">Yangi quiz boshlash</span>';
+            }, 2000);
+        }
+
+        // ========== FLASHCARDS ==========
+        let swiperInstance = null;
+
+        function renderFlashcards(cards) {
+            const wrapper = document.getElementById('flashcardWrapper');
+            wrapper.innerHTML = cards.map((card, i) => `
+                <div class="swiper-slide">
+                    <div class="flashcard" onclick="flipCard(this)">
+                        <div class="flashcard-inner">
+                            <div class="flashcard-front glass-card">
+                                <div class="flashcard-question">${card.question}</div>
+                                <div class="flashcard-hint">👆 Javobni ko'rish uchun bosing</div>
+                            </div>
+                            <div class="flashcard-back glass-card">
+                                <div class="flashcard-answer">${card.answer}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function initSwiper() {
+            swiperInstance = new Swiper('#flashcardSwiper', {
+                slidesPerView: 'auto',
+                centeredSlides: true,
+                spaceBetween: 20,
+                effect: 'cards',
+                grabCursor: true
+            });
+        }
+
+        function flipCard(card) {
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+            card.classList.toggle('flipped');
+        }
+
+        function flashcardAction(action) {
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred(action === 'correct' ? 'success' : 'error');
+            }
+
+            // Visual feedback
+            const color = action === 'correct' ? '#22c55e' : '#ef4444';
+            const flash = document.createElement('div');
+            flash.style.cssText = `
+                position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                background: ${color}; opacity: 0.3; z-index: 999;
+                animation: fadeOut 0.3s forwards;
+            `;
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 300);
+
+            // Send to bot
+            sendData({ action: 'flashcard', result: action });
+
+            // Next card
+            if (swiperInstance) {
+                swiperInstance.slideNext();
+            }
+        }
+
+        // ========== LEADERBOARD ==========
+        function renderLeaderboard(users) {
+            // Sort by XP
+            const sorted = [...users].sort((a, b) => b.xp - a.xp);
+            const top3 = sorted.slice(0, 3);
+            const rest = sorted.slice(3);
+
+            // Podium
+            const podium = document.getElementById('podium');
+            const positions = ['second', 'first', 'third'];
+            podium.innerHTML = top3.map((user, i) => `
+                <div class="podium-item ${positions[i]}">
+                    <div class="podium-avatar">
+                        ${i === 0 ? '<span class="crown">👑</span>' : ''}
+                        ${user.name.charAt(0)}
+                    </div>
+                    <div class="podium-name">${user.name}</div>
+                    <div class="podium-xp">${formatNumber(user.xp)} XP</div>
+                </div>
+            `).join('');
+
+            // List
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = rest.map((user, i) => `
+                <div class="lb-item ${user.is_current ? 'current-user' : ''}">
+                    <div class="lb-rank">${i + 4}</div>
+                    <div class="lb-avatar">${user.name.charAt(0)}</div>
+                    <div class="lb-info">
+                        <div class="lb-name">${user.name}</div>
+                        <div class="lb-level">Level ${user.level}</div>
+                    </div>
+                    <div class="lb-xp">${formatNumber(user.xp)}</div>
+                </div>
+            `).join('');
+        }
+
+        // ========== SHOP ==========
+        function renderShop(items) {
+            const grid = document.getElementById('shopGrid');
+            grid.innerHTML = items.map(item => `
+                <div class="glass-card shop-item">
+                    <div class="shop-icon">${item.icon}</div>
+                    <div class="shop-name">${item.name}</div>
+                    <div class="shop-price" onclick="buyItem('${item.id}', ${item.price})">
+                        🪙 ${item.price}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function buyItem(itemId, price) {
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('heavy');
+            }
+
+            // Particle explosion
+            createParticles();
+
+            // Send to bot
+            sendData({ action: 'buy_item', item_id: itemId, price: price });
+        }
+
+        function createParticles() {
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = '🪙';
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = '50%';
+                particle.style.fontSize = `${Math.random() * 20 + 10}px`;
+                particle.style.animationDelay = `${Math.random() * 0.3}s`;
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
+
+        // ========== PREMIUM ==========
+        function buyPremium(plan) {
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('heavy');
+            }
+            sendData({ action: 'invoice', plan: plan });
+        }
+
+        // Premium timer
+        let timerSeconds = 2 * 3600 + 45 * 60 + 12;
+        setInterval(() => {
+            timerSeconds--;
+            if (timerSeconds < 0) timerSeconds = 3600;
+            const h = Math.floor(timerSeconds / 3600);
+            const m = Math.floor((timerSeconds % 3600) / 60);
+            const s = timerSeconds % 60;
+            document.getElementById('premiumTimer').textContent = 
+                `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }, 1000);
+
+        // ========== CHARTS ==========
+        function initXPChart() {
+            const ctx = document.getElementById('xpChart').getContext('2d');
+            const data = userData?.xp_history || [100, 150, 200, 180, 250, 300, 280, 320, 400, 450, 500, 600, 750, 815];
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map((_, i) => `${14 - i} kun`).reverse(),
+                    datasets: [{
+                        label: 'XP',
+                        data: data,
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#00d4ff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            });
+        }
+
+        // ========== MATRIX RAIN ==========
+        function createMatrixRain() {
+            const container = document.getElementById('matrixRain');
+            const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+            
+            for (let i = 0; i < 20; i++) {
+                const column = document.createElement('div');
+                column.className = 'matrix-column';
+                column.style.left = `${i * 5}%`;
+                column.style.animationDelay = `${Math.random() * 4}s`;
+                column.style.animationDuration = `${3 + Math.random() * 3}s`;
+                
+                let text = '';
+                for (let j = 0; j < 20; j++) {
+                    text += chars.charAt(Math.floor(Math.random() * chars.length)) + ' ';
+                }
+                column.textContent = text;
+                container.appendChild(column);
+            }
+        }
+
+        // ========== SECURITY ==========
+        function showSecurityAlert() {
+            const alert = document.getElementById('securityAlert');
+            alert.classList.add('show');
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('error');
+            }
+            setTimeout(() => alert.classList.remove('show'), 1000);
+        }
+
+        function showExpiredScreen() {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('expiredScreen').style.display = 'flex';
+        }
+
+        function triggerHoneypot() {
+            sendData({ action: 'ban_me', reason: 'honeypot_triggered' });
+            showSecurityAlert();
+        }
+
+        // ========== SEND DATA TO BOT ==========
+        function sendData(data) {
+            if (tg) {
+                tg.sendData(JSON.stringify(data));
+            } else {
+                console.log('Would send to bot:', data);
+            }
+        }
+
+        // ========== UTILITIES ==========
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Add fadeOut animation
+        const style = document.createElement('style');
+        style.textContent = `@keyframes fadeOut { to { opacity: 0; } }`;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

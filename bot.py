@@ -29,8 +29,8 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
 # ========== CONFIGURATION ==========
-BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-domain.com/asadbekjon.html")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "7483264783:AAG6dTaO_sEdsZQCYO5pT5aNLPgmy8SrYFQ")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://ultimatium07.github.io/Nexus-/asadbekjon.html")
 AES_KEY = os.getenv("AES_KEY", "nexus_secret_key_32bytes_long!!")  # 32 bytes for AES-256
 TTL_SECONDS = 300  # 5 minutes
 

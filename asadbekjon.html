@@ -1477,8 +1477,6 @@
                         }
                     }
 
-                    // Populate UI
-                    populateUI(userData);
                 } catch (e) {
                     console.error('Decryption failed:', e);
                     showExpiredScreen();
@@ -1487,8 +1485,11 @@
             } else {
                 // Demo mode
                 userData = getDemoData();
-                populateUI(userData);
             }
+
+            // Merge Telegram user context (if inside Telegram)
+            userData = hydrateFromTelegram(userData);
+            populateUI(userData);
 
             // Hide loader after delay
             setTimeout(() => {
@@ -1526,6 +1527,37 @@
             } catch (e) {
                 throw new Error('Decryption failed');
             }
+        }
+
+        // ========== TELEGRAM FALLBACK ==========
+        function hydrateFromTelegram(data = {}) {
+            if (tg?.initDataUnsafe?.user) {
+                const user = tg.initDataUnsafe.user;
+                const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ').trim();
+                data.full_name = fullName || data.full_name || 'Telegram foydalanuvchisi';
+                data.username = user.username || data.username;
+                data.user_id = user.id || data.user_id;
+                data.tier = data.tier || 'Telegram User';
+
+                const avatarEl = document.getElementById('userAvatar');
+                if (avatarEl) {
+                    if (user.photo_url) {
+                        avatarEl.style.backgroundImage = `url(${user.photo_url})`;
+                        avatarEl.style.backgroundSize = 'cover';
+                        avatarEl.style.backgroundPosition = 'center';
+                        avatarEl.textContent = '';
+                    } else if (fullName) {
+                        avatarEl.textContent = fullName.charAt(0).toUpperCase();
+                    }
+                }
+            } else {
+                // Not opened inside Telegram
+                const nameEl = document.getElementById('userName');
+                if (nameEl && !data.full_name) {
+                    nameEl.textContent = 'Mehmon (Telegram orqali kiring)';
+                }
+            }
+            return data;
         }
 
         // ========== DEMO DATA ==========
